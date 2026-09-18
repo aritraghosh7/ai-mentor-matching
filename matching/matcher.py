@@ -1,13 +1,7 @@
-"""
-Deterministic mentor matching engine.
+"""Deterministic mentor matching engine.
 
-The displayed match percentage is based primarily on:
-
-    matched required skills
-    -----------------------
-    total required skills
-
-The LLM does not calculate this score.
+The displayed match percentage combines required skills, learning goals and
+current-skill context. The LLM does not calculate this score.
 """
 
 from __future__ import annotations
@@ -60,6 +54,7 @@ def normalize_skill(
 
 def split_skills(
     value: Any,
+    split_space: bool = False,
 ) -> list[str]:
     """
     Split skill strings.
@@ -76,10 +71,11 @@ def split_skills(
 
         return []
 
-    parts = re.split(
-        r"[,;|\n]+",
-        str(value),
-    )
+    raw_value = str(value)
+    parts = re.split(r"[,;|\n]+", raw_value)
+
+    if split_space and len(parts) == 1 and " " in raw_value.strip():
+        parts = raw_value.split()
 
     skills = []
 
@@ -100,6 +96,27 @@ def split_skills(
     )
 
 
+def category_match(
+    mentee_skills: list[str],
+    mentor_skills: set[str],
+) -> tuple[float, list[str], list[str]]:
+    """Calculate an exact matched-items percentage for one category."""
+
+    if not mentee_skills:
+        return 0.0, [], []
+
+    matched = []
+    missing = []
+    for mentee_skill in mentee_skills:
+        if mentee_skill in mentor_skills:
+            matched.append(mentee_skill)
+        else:
+            missing.append(mentee_skill)
+
+    percentage = len(matched) / len(mentee_skills) * 100
+    return percentage, matched, missing
+
+
 # ============================================================
 # MATCH CALCULATION
 # ============================================================
@@ -108,24 +125,18 @@ def calculate_match(
     mentee: dict[str, Any],
     mentor: dict[str, Any],
 ) -> dict[str, Any]:
-    """
-    Calculate deterministic skill matching.
+    """Calculate the weighted exact-match score.
 
-    Formula:
-
-        matched required skills
-        ----------------------- x 100
-        total required skills
-
-    Required skills are compared against the mentor's
-    skills and expertise.
+    Required skills = 60%, learning goals = 30%, current skills = 10%.
+    Each category uses matched items divided by total items in that category.
     """
 
     required_skills = split_skills(
         mentee.get(
             "required_skills",
             "",
-        )
+        ),
+        split_space=True,
     )
 
     mentor_skills = split_skills(
@@ -147,51 +158,46 @@ def calculate_match(
         + mentor_expertise
     )
 
-    matched = []
-
-    missing = []
-
-    for required in required_skills:
-
-        if required in mentor_skill_set:
-
-            matched.append(
-                required
-            )
-
-        else:
-
-            missing.append(
-                required
-            )
-
-    total = len(
-        required_skills
+    learning_goals = split_skills(
+        mentee.get("learning_goals", ""),
+    )
+    current_skills = split_skills(
+        mentee.get("skills", mentee.get("current_skills", "")),
+        split_space=True,
     )
 
-    if total == 0:
+    required_percentage, matched, missing = category_match(
+        required_skills,
+        mentor_skill_set,
+    )
+    goal_percentage, matched_goals, missing_goals = category_match(
+        learning_goals,
+        mentor_skill_set,
+    )
+    current_percentage, matched_current, missing_current = category_match(
+        current_skills,
+        mentor_skill_set,
+    )
 
-        percentage = 0.0
-
-    else:
-
-        percentage = (
-            len(matched)
-            / total
-            * 100
-        )
+    percentage = (
+        required_percentage * 0.60
+        + goal_percentage * 0.30
+        + current_percentage * 0.10
+    )
 
     return {
-        "match_percentage": round(
-            percentage,
-            1,
-        ),
+        "match_percentage": round(percentage, 1),
         "matched_skills": matched,
         "missing_skills": missing,
-        "total_required_skills": total,
-        "matched_required_skills": len(
-            matched
-        ),
+        "matched_goals": matched_goals,
+        "missing_goals": missing_goals,
+        "matched_current_skills": matched_current,
+        "missing_current_skills": missing_current,
+        "required_match_percentage": round(required_percentage, 1),
+        "learning_goal_match_percentage": round(goal_percentage, 1),
+        "current_skill_match_percentage": round(current_percentage, 1),
+        "total_required_skills": len(required_skills),
+        "matched_required_skills": len(matched),
     }
 
 

@@ -616,7 +616,7 @@ def initialize_database():
     Intialize the SQLite databse and load the CSV datasets,
     Safe to call when the app starts.
     """
-    create_tables()
+    init_db()
     seed_from_csv()
     return True
 # ============================================================
@@ -666,6 +666,15 @@ def get_database_stats() -> dict[str, int]:
             """
             SELECT COUNT(*)
             FROM mentorship_requests
+            WHERE status = 'PENDING'
+            """
+        ).fetchone()[0]
+
+        enrolled = connection.execute(
+            """
+            SELECT COUNT(*)
+            FROM mentorship_requests
+            WHERE status = 'ACCEPTED'
             """
         ).fetchone()[0]
 
@@ -675,6 +684,7 @@ def get_database_stats() -> dict[str, int]:
             "mentees": int(mentees),
             "available_mentors": int(available),
             "requests": int(requests),
+            "enrolled": int(enrolled),
         }
 
     finally:

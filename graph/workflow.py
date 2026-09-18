@@ -47,6 +47,8 @@ from rag.retriever import (
 
 from graph.state import MatchingState
 
+MINIMUM_MATCH_PERCENTAGE = 30.0
+
 
 # ============================================================
 # RETRIEVE
@@ -278,6 +280,9 @@ def recommendation_node(
         [],
     ):
 
+        if item.get("match_percentage", 0) <= MINIMUM_MATCH_PERCENTAGE:
+            continue
+
         recommendation = dict(
             item
         )
@@ -392,3 +397,21 @@ def build_matching_graph():
 # ============================================================
 
 matching_graph = build_matching_graph()
+
+
+def run_matching_workflow(
+    mentee_requirements: dict[str, Any],
+    limit: int = 12,
+) -> dict[str, Any]:
+    """Run the compiled matching graph for one mentee profile."""
+
+    result = matching_graph.invoke(
+        {
+            "mentee_requirements": mentee_requirements,
+        }
+    )
+
+    recommendations = result.get("recommendations", [])
+    result["recommendations"] = recommendations[:max(0, limit)]
+
+    return result

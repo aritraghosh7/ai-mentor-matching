@@ -31,6 +31,16 @@ def llm_is_configured() -> bool:
     Check whether the required LLM configuration exists.
     """
 
+    enabled = os.getenv(
+        "ENABLE_LLM",
+        "true",
+    ).strip().lower() not in {
+        "0",
+        "false",
+        "no",
+        "off",
+    }
+
     api_key = os.getenv(
         "LLM_API_KEY",
         "",
@@ -42,6 +52,8 @@ def llm_is_configured() -> bool:
     ).strip()
 
     return bool(
+        enabled
+        and
         api_key
         and model
         and api_key != "your_api_key_here"

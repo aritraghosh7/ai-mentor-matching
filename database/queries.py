@@ -368,6 +368,56 @@ def get_mentee_by_user_id(
         connection.close()
 
 
+def delete_mentee(
+    user_id: int,
+) -> dict:
+    """Delete a mentee account and its related records."""
+
+    connection = get_connection()
+
+    try:
+        connection.execute("BEGIN IMMEDIATE")
+
+        mentee = connection.execute(
+            """
+            SELECT id
+            FROM users
+            WHERE id = ?
+              AND role = 'MENTEE'
+            LIMIT 1
+            """,
+            (user_id,),
+        ).fetchone()
+
+        if mentee is None:
+            connection.rollback()
+            return {
+                "success": False,
+                "message": "Mentee not found.",
+            }
+
+        connection.execute(
+            "DELETE FROM users WHERE id = ? AND role = 'MENTEE'",
+            (user_id,),
+        )
+        connection.commit()
+
+        return {
+            "success": True,
+            "message": "Mentee profile deleted.",
+        }
+
+    except Exception as error:
+        connection.rollback()
+        return {
+            "success": False,
+            "message": f"Could not delete mentee: {error}",
+        }
+
+    finally:
+        connection.close()
+
+
 # ============================================================
 # GET ALL MENTORS
 # ============================================================
@@ -410,10 +460,15 @@ def get_all_mentors():
             """
         ).fetchall()
 
-        return [
+        mentors = [
             dict(row)
             for row in rows
         ]
+
+        for mentor in mentors:
+            mentor["id"] = mentor["user_id"]
+
+        return mentors
 
     finally:
 
@@ -809,6 +864,32 @@ def create_request(
                 "message": "Mentee not found.",
             }
 
+        active_request = connection.execute(
+            """
+            SELECT
+                mr.id,
+                mentor.name AS mentor_name
+            FROM mentorship_requests mr
+            INNER JOIN users mentor
+                ON mr.mentor_id = mentor.id
+            WHERE mr.mentee_id = ?
+              AND mr.status IN ('PENDING', 'ACCEPTED')
+            LIMIT 1
+            """,
+            (mentee_id,),
+        ).fetchone()
+
+        if active_request is not None:
+            connection.rollback()
+            return {
+                "success": False,
+                "message": (
+                    "You cannot apply to more than one mentor. "
+                    f"This mentee already has an active request or mentor "
+                    f"relationship with {active_request['mentor_name']}."
+                ),
+            }
+
         mentor = connection.execute(
             """
             SELECT
@@ -979,13 +1060,60 @@ def get_requests_for_mentee(
             (mentee_id,),
         ).fetchall()
 
-        return [
+        requests = [
             dict(row)
             for row in rows
         ]
 
+        for request in requests:
+            request["id"] = request["request_id"]
+
+        return requests
+
     finally:
 
+        connection.close()
+
+
+def get_enrolled_mentees():
+    """Return mentee details, mentor details, and request status."""
+
+    connection = get_connection()
+
+    try:
+        rows = connection.execute(
+            """
+            SELECT
+                mr.id AS request_id,
+                mr.status,
+                mr.created_at,
+                mr.updated_at,
+                mentee.id AS mentee_id,
+                mentee.name AS mentee_name,
+                mentee.email AS mentee_email,
+                mp.current_domain,
+                mp.current_skills,
+                mp.skill_level,
+                mp.learning_goals,
+                mp.required_skills,
+                mentor.name AS mentor_name,
+                mentor.email AS mentor_email
+            FROM mentorship_requests mr
+            INNER JOIN users mentee
+                ON mr.mentee_id = mentee.id
+            INNER JOIN mentee_profiles mp
+                ON mentee.id = mp.user_id
+            INNER JOIN users mentor
+                ON mr.mentor_id = mentor.id
+            WHERE mentee.role = 'MENTEE'
+              AND mentor.role = 'MENTOR'
+            ORDER BY mr.updated_at DESC, mr.created_at DESC
+            """
+        ).fetchall()
+
+        return [dict(row) for row in rows]
+
+    finally:
         connection.close()
 
 
@@ -1037,10 +1165,15 @@ def get_pending_requests_for_mentor(
             (mentor_id,),
         ).fetchall()
 
-        return [
+        requests = [
             dict(row)
             for row in rows
         ]
+
+        for request in requests:
+            request["id"] = request["request_id"]
+
+        return requests
 
     finally:
 
@@ -1347,6 +1480,109 @@ def reject_request(
             ),
         }
 
+
     finally:
 
         connection.close()
+
+
+# ============================================================
+# APP COMPATIBILITY WRAPPERS
+# ============================================================
+
+def get_all_mentees():
+    connection = get_connection()
+
+    try:
+        rows = connection.execute(
+            """
+            SELECT
+                u.id AS id,
+                u.name,
+                u.email,
+                mp.current_domain,
+                mp.current_skills AS skills,
+                mp.skill_level,
+                mp.learning_goals,
+                mp.required_skills
+            FROM users u
+            INNER JOIN mentee_profiles mp
+                ON u.id = mp.user_id
+            WHERE u.role = 'MENTEE'
+            ORDER BY u.name
+            """
+        ).fetchall()
+
+        return [dict(row) for row in rows]
+
+    finally:
+        connection.close()
+
+
+def get_available_mentors():
+    return [
+        mentor
+        for mentor in get_all_mentors()
+        if mentor["current_mentees"] < mentor["max_mentees"]
+    ]
+
+
+def get_mentee(user_id):
+    mentee = get_mentee_by_user_id(user_id)
+
+    if mentee:
+        mentee["id"] = mentee["user_id"]
+        mentee["skills"] = mentee.get("current_skills", "")
+
+    return mentee
+
+
+def get_mentor(user_id):
+    mentor = get_mentor_by_user_id(user_id)
+
+    if mentor:
+        mentor["id"] = mentor["user_id"]
+
+    return mentor
+
+
+def update_mentee_profile(
+    mentee_id,
+    name,
+    email,
+    skills,
+    skill_level,
+    learning_goals,
+    required_skills,
+):
+    return create_or_update_mentee(
+        name=name,
+        email=email,
+        current_domain="",
+        current_skills=skills,
+        skill_level=skill_level,
+        learning_goals=learning_goals,
+        required_skills=required_skills,
+    )
+
+
+def send_request(mentee_id, mentor_id):
+    return create_request(mentee_id, mentor_id)
+
+
+def get_mentee_requests(mentee_id):
+    rows = get_requests_for_mentee(mentee_id)
+
+    for row in rows:
+        row["id"] = row["request_id"]
+
+    return rows
+
+
+def get_mentor_requests(mentor_id):
+    rows = get_requests_for_mentor(mentor_id)
+
+    for row in rows:
+        row["id"] = row["request_id"]
+
+    return rows
