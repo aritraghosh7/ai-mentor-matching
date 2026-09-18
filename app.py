@@ -1,3 +1,4 @@
+import base64
 import os
 from textwrap import dedent
 from pathlib import Path
@@ -34,6 +35,20 @@ from graph.workflow import run_matching_workflow
 from matching.matcher import calculate_match
 
 load_dotenv()
+
+ASSETS_DIR = Path(__file__).parent / "assets"
+HERO_IMAGE_PATH = ASSETS_DIR / "mentor_home_hero.png"
+
+
+def get_base64_image(image_path: Path) -> str:
+    """Convert a local image into a Base64 string for HTML rendering."""
+    if not image_path.exists():
+        return ""
+
+    return base64.b64encode(image_path.read_bytes()).decode("utf-8")
+
+
+hero_image_base64 = get_base64_image(HERO_IMAGE_PATH)
 
 # -------------------------------------------------------------------
 # App configuration
@@ -96,8 +111,8 @@ st.markdown(
             font-family: 'Inter', sans-serif;
         }
 
-        .block-container {
-            max-width: 1400px;
+                width: 282px !important;
+                min-width: 282px !important;
             padding-top: 2rem;
             padding-bottom: 4rem;
         }
@@ -385,6 +400,22 @@ st.markdown(
             color: #ffffff;
             box-shadow: inset 3px 0 0 var(--accent-blue);
         }
+
+            [data-testid="stSidebar"] [data-testid="stRadio"] label::before {
+                display: inline-block;
+                width: 1.25rem;
+                margin-right: .3rem;
+                color: #7e91c0;
+                text-align: center;
+            }
+
+            [data-testid="stSidebar"] [data-testid="stRadio"] label:nth-child(1)::before { content: "⌂"; }
+            [data-testid="stSidebar"] [data-testid="stRadio"] label:nth-child(2)::before { content: "◉"; }
+            [data-testid="stSidebar"] [data-testid="stRadio"] label:nth-child(3)::before { content: "⌕"; }
+            [data-testid="stSidebar"] [data-testid="stRadio"] label:nth-child(4)::before { content: "▤"; }
+            [data-testid="stSidebar"] [data-testid="stRadio"] label:nth-child(5)::before { content: "♙"; }
+            [data-testid="stSidebar"] [data-testid="stRadio"] label:nth-child(6)::before { content: "▣"; }
+            [data-testid="stSidebar"] [data-testid="stRadio"] label:nth-child(7)::before { content: "♙"; }
 
         .brand {
             font-size: 1.15rem;
@@ -696,6 +727,51 @@ st.markdown(
             padding: .75rem .7rem 1rem;
         }
 
+        /* Keep Streamlit's sidebar toggle compact when its icon font is unavailable. */
+        [data-testid="stSidebarCollapseButton"],
+        [data-testid="stSidebarCollapsedControl"] {
+            overflow: hidden;
+        }
+
+        [data-testid="stSidebarCollapseButton"] button,
+        [data-testid="stSidebarCollapsedControl"] button {
+            width: 2rem;
+            min-width: 2rem;
+            height: 2rem;
+            padding: 0;
+            overflow: hidden;
+            color: transparent !important;
+            font-size: 0 !important;
+            line-height: 0 !important;
+        }
+
+        [data-testid="stSidebarCollapseButton"] button::after,
+        [data-testid="stSidebarCollapsedControl"] button::after {
+            content: "‹";
+            display: block;
+            color: #aab9de;
+            font-size: 1.35rem;
+            line-height: 1;
+        }
+
+        [data-testid="stSidebarCollapseButton"] button [data-testid="stIconMaterial"],
+        [data-testid="stSidebarCollapsedControl"] button [data-testid="stIconMaterial"],
+        [data-testid="stSidebarCollapseButton"] button span[class*="material"],
+        [data-testid="stSidebarCollapsedControl"] button span[class*="material"] {
+            display: none !important;
+        }
+
+        [data-testid="stSidebarCollapseButton"] button::after,
+        [data-testid="stSidebarCollapsedControl"] button::after {
+            content: "‹" !important;
+            display: block !important;
+            width: 100%;
+            color: #aab9de !important;
+            font-family: sans-serif !important;
+            font-size: 1.35rem !important;
+            line-height: 1 !important;
+        }
+
         [data-testid="stSidebar"] hr {
             margin: .65rem 0;
             border-color: rgba(121, 143, 208, .18);
@@ -884,6 +960,508 @@ st.markdown(
             color: #f1f4ff;
             font-size: .7rem;
         }
+
+        .role-entry {
+            min-height: 360px;
+            display: grid;
+            place-items: center;
+            padding: 2rem;
+            border: 1px solid rgba(116, 148, 255, .2);
+            border-radius: 12px;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(69, 98, 214, .2), transparent 42%),
+                linear-gradient(145deg, rgba(15, 28, 59, .98), rgba(8, 15, 32, .98));
+        }
+
+        .role-entry-content {
+            width: min(100%, 650px);
+            text-align: center;
+        }
+
+        .role-entry h1 {
+            margin: .25rem 0 .55rem;
+            font-size: clamp(2rem, 4vw, 3.1rem);
+        }
+
+        .role-entry p {
+            max-width: 500px;
+            margin: 0 auto 1.35rem;
+            color: #98a8cf;
+            font-size: .78rem;
+        }
+
+        .role-choice {
+            min-height: 125px;
+            display: grid;
+            place-items: center;
+            padding: 1rem;
+            border: 1px solid rgba(119, 145, 241, .25);
+            border-radius: 10px;
+            background: linear-gradient(145deg, rgba(31, 51, 112, .72), rgba(20, 31, 67, .72));
+            color: #f3f5ff;
+            font-weight: 700;
+        }
+
+        .role-choice small {
+            display: block;
+            margin-top: .35rem;
+            color: #9baad0;
+            font-size: .64rem;
+            font-weight: 400;
+        }
+
+        .mentor-dashboard-card {
+            display: grid;
+            grid-template-columns: 1.05fr .95fr;
+            gap: .75rem;
+            padding: .8rem;
+            border: 1px solid rgba(117, 147, 240, .2);
+            border-radius: 11px;
+            background: linear-gradient(145deg, rgba(13, 29, 61, .98), rgba(9, 19, 40, .98));
+        }
+
+        .mentor-dashboard-profile {
+            min-height: 210px;
+            padding: .2rem .65rem .2rem .1rem;
+            border-right: 1px solid rgba(119, 143, 213, .14);
+        }
+
+        .mentor-identity {
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+        }
+
+        .mentor-avatar {
+            display: grid;
+            place-items: center;
+            width: 3.25rem;
+            height: 3.25rem;
+            flex: 0 0 3.25rem;
+            border-radius: 50%;
+            border: 2px solid #78a0ff;
+            background: linear-gradient(135deg, #284892, #9c5fe8);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+
+        .mentor-dashboard-profile h2 {
+            margin: 0;
+            font-size: 1.12rem;
+        }
+
+        .mentor-subline {
+            margin-top: .2rem;
+            color: #aab8d7;
+            font-size: .62rem;
+            line-height: 1.7;
+        }
+
+        .mentor-subline span {
+            color: #7990bc;
+        }
+
+        .dashboard-status {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: .65rem;
+            align-items: center;
+            padding-left: .2rem;
+        }
+
+        .dashboard-ring {
+            display: grid;
+            place-items: center;
+            width: 94px;
+            height: 94px;
+            margin: auto;
+            border: 8px solid #42caff;
+            border-right-color: #806bff;
+            border-radius: 50%;
+            color: #f5f7ff;
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .dashboard-ring small {
+            display: block;
+            color: #93a2c4;
+            font-size: .48rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .dashboard-capacity {
+            padding: .7rem;
+            border: 1px solid rgba(106, 138, 228, .18);
+            border-radius: 8px;
+            color: #b8c4df;
+            font-size: .62rem;
+            line-height: 1.8;
+        }
+
+        .dashboard-capacity strong {
+            color: #63efa4;
+            font-size: .68rem;
+        }
+
+        .dashboard-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: .65rem;
+            margin-top: .7rem;
+        }
+
+        .dashboard-detail-card {
+            min-height: 105px;
+            padding: .7rem;
+            border: 1px solid rgba(111, 140, 230, .16);
+            border-radius: 9px;
+            background: rgba(14, 28, 57, .8);
+        }
+
+        .dashboard-detail-card h4 {
+            margin: 0 0 .45rem;
+            font-size: .7rem;
+        }
+
+        .dashboard-detail-card p {
+            margin: 0;
+            color: #aab8d5;
+            font-size: .62rem;
+            line-height: 1.55;
+        }
+
+        .dashboard-request-actions {
+            display: flex;
+            gap: .45rem;
+            margin-top: .65rem;
+        }
+
+        .dashboard-shell {
+            padding: .8rem;
+            border: 1px solid rgba(117, 147, 240, .2);
+            border-radius: 12px;
+            background: linear-gradient(145deg, rgba(13, 29, 61, .98), rgba(9, 19, 40, .98));
+        }
+
+        .dashboard-column {
+            min-height: 310px;
+            padding: .8rem;
+            border: 1px solid rgba(111, 140, 230, .16);
+            border-radius: 9px;
+            background: rgba(14, 28, 57, .72);
+        }
+
+        .dashboard-column h3 {
+            margin: 0 0 .7rem;
+            font-size: .78rem;
+        }
+
+        .dashboard-column h4 {
+            margin: .8rem 0 .35rem;
+            font-size: .65rem;
+        }
+
+        .progress-row { margin: .65rem 0; }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            gap: .5rem;
+            color: #b8c5e3;
+            font-size: .59rem;
+        }
+
+        .progress-track {
+            height: 6px;
+            margin-top: .28rem;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #1c2a4a;
+        }
+
+        .progress-fill { height: 100%; border-radius: inherit; }
+        .progress-purple { background: linear-gradient(90deg, #7654ef, #a758ed); }
+        .progress-blue { background: linear-gradient(90deg, #398cff, #62b9ff); }
+        .progress-green { background: linear-gradient(90deg, #55d39c, #7aefb3); }
+
+        .profile-score-label {
+            margin-top: .4rem;
+            color: #8fa0c5;
+            font-size: .54rem;
+            text-align: center;
+        }
+
+        .dashboard-action-row { margin-top: .75rem; }
+
+        @media (max-width: 700px) {
+            .mentor-dashboard-card, .dashboard-status { grid-template-columns: 1fr; }
+            .mentor-dashboard-profile { border-right: 0; border-bottom: 1px solid rgba(119, 143, 213, .14); padding-bottom: .7rem; }
+        }
+
+        /* Home page reference layout */
+        .mm-home {
+            color: #f7f9ff;
+        }
+
+        .mm-topbar {
+            min-height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            margin: -.65rem -1rem .7rem;
+            padding: 0 1rem;
+            border-bottom: 1px solid rgba(105, 135, 220, .16);
+        }
+
+        .mm-home .mm-topbar {
+            margin-top: -.65rem;
+        }
+
+        .mm-hero {
+            position: relative;
+            min-height: 270px;
+            padding: 1.65rem 1.8rem;
+            overflow: hidden;
+            border: 1px solid rgba(105, 135, 220, .30);
+            border-radius: 20px;
+            background:
+                radial-gradient(circle at 83% 20%, rgba(55, 200, 255, .30), transparent 23%),
+                radial-gradient(circle at 58% 95%, rgba(114, 59, 255, .38), transparent 29%),
+                linear-gradient(118deg, #172b8d 0%, #10245d 47%, #071733 100%);
+            box-shadow: 0 20px 55px rgba(2, 13, 40, .35);
+        }
+
+        .mm-hero-grid {
+            position: static;
+            display: block;
+            min-height: 235px;
+        }
+
+        .mm-hero-eyebrow {
+            margin-bottom: .55rem;
+            color: #9a9dff;
+            font-size: .57rem;
+            font-weight: 800;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+        }
+
+        .mm-hero h1 {
+            max-width: 580px;
+            margin: 0 0 .7rem;
+            color: #fbfcff;
+            font-size: clamp(2.15rem, 4.3vw, 3.55rem);
+            line-height: 1.02;
+            letter-spacing: -.055em;
+        }
+
+        .mm-hero-copy {
+            max-width: 470px;
+            margin: 0;
+            color: #c5d3f5;
+            font-size: .78rem;
+            line-height: 1.55;
+        }
+
+        .mm-hero-art {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            bottom: 0;
+            height: auto;
+            overflow: hidden;
+            border-radius: inherit;
+            z-index: 1;
+        }
+
+        .mm-hero-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center right;
+            display: block;
+            -webkit-mask-image: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(0, 0, 0, .18) 10%,
+                rgba(0, 0, 0, .72) 25%,
+                #000 42%
+            );
+            mask-image: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(0, 0, 0, .18) 10%,
+                rgba(0, 0, 0, .72) 25%,
+                #000 42%
+            );
+        }
+
+        .mm-hero-visual::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background:
+                linear-gradient(180deg, #172b8d 0%, transparent 10%, transparent 88%, #071733 100%),
+                linear-gradient(90deg, #172b8d 0%, #172b8d 22%, rgba(23, 43, 141, .92) 38%, rgba(23, 43, 141, .42) 57%, rgba(23, 43, 141, .08) 76%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .mm-hero-content {
+            position: relative;
+            z-index: 3;
+            width: 58%;
+        }
+
+        .mm-hero-links {
+            position: absolute;
+            top: .1rem;
+            right: .2rem;
+            color: #dce6ff;
+            font-size: .55rem;
+        }
+
+        .mm-hero-labels {
+            position: absolute;
+            right: .2rem;
+            bottom: .25rem;
+            color: #c7d7ff;
+            font-size: .52rem;
+            line-height: 1.55;
+            text-align: right;
+        }
+
+        .mm-hero-right-top, .mm-hero-right-bottom {
+            position: absolute;
+            z-index: 4;
+        }
+
+        .mm-hero-right-top {
+            top: 1.5rem;
+            right: 2rem;
+            color: #ffffff;
+            font-size: .72rem;
+        }
+
+        .mm-hero-right-bottom {
+            right: 2rem;
+            bottom: 1.7rem;
+            color: #dce5ff;
+            font-size: .62rem;
+            line-height: 1.8;
+            letter-spacing: .04em;
+        }
+
+        .mm-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: .65rem;
+            margin: .7rem 0 .9rem;
+        }
+
+        .mm-metric-card {
+            min-height: 75px;
+            padding: .7rem .8rem;
+            border: 1px solid rgba(105, 135, 220, .22);
+            border-radius: 9px;
+            background: linear-gradient(145deg, #0d2341, #0a192f);
+        }
+
+        .mm-metric-icon {
+            display: inline-grid;
+            place-items: center;
+            width: 1.45rem;
+            height: 1.45rem;
+            margin-bottom: .25rem;
+            border-radius: 6px;
+            font-size: .76rem;
+        }
+
+        .mm-metric-value {
+            color: #f7f9ff;
+            font-size: 1.25rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .mm-metric-label {
+            margin-top: .25rem;
+            color: #9eaecc;
+            font-size: .57rem;
+        }
+
+        .mm-step-title {
+            margin: .5rem 0 .45rem;
+            color: #f7f9ff;
+            font-size: 1.05rem;
+            font-weight: 800;
+        }
+
+        .mm-steps {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: .65rem;
+        }
+
+        .mm-step-card {
+            display: flex;
+            gap: .65rem;
+            align-items: center;
+            min-height: 75px;
+            padding: .7rem;
+            border: 1px solid rgba(105, 135, 220, .22);
+            border-radius: 9px;
+            background: linear-gradient(145deg, #0d2341, #0a192f);
+        }
+
+        .mm-step-number {
+            display: grid;
+            place-items: center;
+            width: 2rem;
+            height: 2rem;
+            flex: 0 0 2rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #246bfd, #37c8ff);
+            color: white;
+            font-size: .72rem;
+            font-weight: 800;
+        }
+
+        .mm-step-card:last-child .mm-step-number {
+            background: linear-gradient(135deg, #723bff, #c25cff);
+        }
+
+        .mm-step-card h4 {
+            margin: 0 0 .2rem;
+            color: #f7f9ff;
+            font-size: .7rem;
+        }
+
+        .mm-step-card p {
+            margin: 0;
+            color: #9eaecc;
+            font-size: .57rem;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 800px) {
+            .mm-hero-grid { min-height: 400px; }
+            .mm-hero-content { width: 100%; }
+            .mm-hero-art { top: auto; bottom: 0; height: 54%; border-radius: 0 0 14px 14px; }
+            .mm-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 560px) {
+            .mm-hero { padding: 1.1rem; border-radius: 14px; }
+            .mm-hero h1 { font-size: 2.05rem; }
+            .mm-metrics, .mm-steps { grid-template-columns: 1fr; }
+            .mm-topbar { margin-left: -.75rem; margin-right: -.75rem; }
+        }
     </style>
     """,
     unsafe_allow_html=True,
@@ -998,11 +1576,27 @@ def open_mentee_profile():
     st.session_state["workspace_page"] = "Mentee Profile"
 
 
+def open_my_requests():
+    st.session_state["next_workspace_page"] = "My Requests"
+
+
+def open_mentor_login():
+    st.session_state["workspace_page"] = "Home"
+    st.session_state["home_role_login"] = "mentor"
+
+
+def reset_home_role_login():
+    st.session_state.pop("home_role_login", None)
+
+
 # -------------------------------------------------------------------
 # Sidebar
 # -------------------------------------------------------------------
 
 stats = get_database_stats()
+
+if "next_workspace_page" in st.session_state:
+    st.session_state["workspace_page"] = st.session_state.pop("next_workspace_page")
 
 with st.sidebar:
     st.markdown(
@@ -1038,19 +1632,12 @@ with st.sidebar:
             logout_mentor()
             st.rerun()
     else:
-        st.markdown('<div class="sidebar-panel-title">Mentor sign in</div>', unsafe_allow_html=True)
-        with st.form("mentor_login_form"):
-            mentor_email = st.text_input("Mentor email", key="sidebar_mentor_email")
-            mentor_password = st.text_input("Password", type="password", key="sidebar_mentor_password")
-            login_submitted = st.form_submit_button("Sign in", use_container_width=True)
-
-        if login_submitted:
-            if login_mentor(mentor_email, mentor_password):
-                st.success("Mentor sign in successful.")
-                st.rerun()
-            else:
-                st.error("Invalid mentor email or password.")
-
+        st.button(
+            "Mentor Login",
+            key="sidebar_mentor_login",
+            use_container_width=True,
+            on_click=open_mentor_login,
+        )
     st.markdown(
         """
         <div class="sidebar-db">Database</div>
@@ -1068,25 +1655,16 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-    st.markdown(
-        """
-        <div class="footer-note">
-        Application-generated match scores are indicators, not objective
-        measures of compatibility.<br><br>
-        Capacity and availability are determined by SQLite, not the AI model.
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
 
 
 role_label = "Mentor" if is_mentor_logged_in() else "Mentee"
-avatar_letter = role_label[0]
+user_name = str(st.session_state.get("mentor_name", "User")) if is_mentor_logged_in() else "User"
+avatar_letter = (user_name[:1] or "U").upper()
 st.markdown(
     f'''
-    <div class="topbar">
+    <div class="mm-topbar">
         <div class="topbar-links">Learn&nbsp;&nbsp;•&nbsp;&nbsp;Grow&nbsp;&nbsp;•&nbsp;&nbsp;Connect</div>
-        <div class="topbar-user"><span class="topbar-avatar">{avatar_letter}</span><span>{role_label}<br><small>Workspace</small></span></div>
+        <div class="topbar-user"><span class="topbar-avatar">{escape(avatar_letter)}</span><span>{escape(user_name)}<br><small>{escape(role_label)}⌄</small></span></div>
     </div>
     ''',
     unsafe_allow_html=True,
@@ -1098,6 +1676,96 @@ st.markdown(
 # -------------------------------------------------------------------
 
 def render_home():
+    selected_role = st.session_state.get("home_role_login")
+    if selected_role == "mentor" and not is_mentor_logged_in():
+        st.markdown('<div class="eyebrow">MENTOR ACCESS</div>', unsafe_allow_html=True)
+        st.title("Mentor Login")
+        st.caption("Sign in to manage your mentor profile, capacity, and incoming requests.")
+        with st.form("home_mentor_login_form"):
+            mentor_email = st.text_input("Mentor email", key="home_mentor_email")
+            mentor_password = st.text_input("Password", type="password", key="home_mentor_password")
+            login_submitted = st.form_submit_button("Sign in as Mentor", type="primary", use_container_width=True)
+
+        back_col, _ = st.columns([1, 3])
+        with back_col:
+            st.button("← Back", key="home_role_back", use_container_width=True, on_click=reset_home_role_login)
+
+        if login_submitted:
+            if login_mentor(mentor_email, mentor_password):
+                st.session_state["next_workspace_page"] = "Mentor Dashboard"
+                st.session_state["mentor_pending_landing"] = True
+                st.session_state.pop("home_role_login", None)
+                st.rerun()
+            else:
+                st.error("Invalid mentor email or password.")
+        return
+
+    stats = get_database_stats()
+    if not hero_image_base64:
+        st.warning("The Home hero image could not be loaded from assets/mentor_home_hero.png.")
+    st.html(
+        f"""
+        <main class="mm-home">
+            <section class="mm-hero">
+                <div class="mm-hero-grid">
+                    <div class="mm-hero-content">
+                        <div class="mm-hero-eyebrow">AI mentorship intelligence</div>
+                        <h1>Find the right mentor.<br>Build the next version of you.</h1>
+                        <p class="mm-hero-copy">Connect with relevant mentors using explainable skill matching, lightweight retrieval and AI-generated recommendations.</p>
+                    </div>
+                    <div class="mm-hero-art mm-hero-visual">
+                        <img class="mm-hero-image" src="data:image/png;base64,{hero_image_base64}" alt="Mountain path leading to a summit flag" />
+                        <div class="mm-hero-right-top">Learn + Grow + Connect</div>
+                        <div class="mm-hero-right-bottom">SKILLS<br>PEOPLE<br>OPPORTUNITIES<br>A BRIGHTER YOU</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        """,
+    )
+
+    hero_action, hero_guide, _ = st.columns([1.05, 1.05, 2.4])
+    with hero_action:
+        st.button(
+            "Get Started →",
+            key="mm_home_get_started",
+            type="primary",
+            use_container_width=True,
+            on_click=open_mentee_profile,
+        )
+    with hero_guide:
+        if st.button("How it works", key="mm_home_how_it_works", use_container_width=True):
+            st.session_state["home_show_guide"] = True
+            st.rerun()
+
+    metric_data = [
+        ("◉", "#37c8ff", stats.get("mentors", 0), "Mentors"),
+        ("✦", "#a56bff", stats.get("mentees", 0), "Mentees"),
+        ("✓", "#2edb91", stats.get("available_mentors", 0), "Available Mentors"),
+        ("▣", "#ff912e", stats.get("requests", 0), "Mentorship Requests"),
+    ]
+    metric_markup = "".join(
+        f'<div class="mm-metric-card"><div class="mm-metric-icon" style="color:{color};background:{color}22">{icon}</div><div class="mm-metric-value">{escape(str(value))}</div><div class="mm-metric-label">{escape(label)}</div></div>'
+        for icon, color, value, label in metric_data
+    )
+    st.markdown(f'<div class="mm-metrics">{metric_markup}</div>', unsafe_allow_html=True)
+
+    if st.session_state.pop("home_show_guide", False):
+        st.info("Create a mentee profile, generate skill-based matches, then send one request to an available mentor.")
+
+    st.markdown('<div class="mm-step-title">How it works</div>', unsafe_allow_html=True)
+    steps = [
+        ("01", "Understand", "Capture your skills, learning goals and required skills."),
+        ("02", "Match", "Our AI finds relevant mentors with explainable scores."),
+        ("03", "Connect", "Send a request and start your mentorship journey."),
+    ]
+    step_markup = "".join(
+        f'<div class="mm-step-card"><div class="mm-step-number">{number}</div><div><h4>{title}</h4><p>{text}</p></div></div>'
+        for number, title, text in steps
+    )
+    st.markdown(f'<div class="mm-steps">{step_markup}</div>', unsafe_allow_html=True)
+    return
+
     st.markdown(
         """
         <div class="hero">
@@ -1341,7 +2009,11 @@ def render_mentee_profile():
                 learning_goals=learning_goals.strip(),
                 required_skills=required_skills.strip(),
             )
-            st.success("Mentee profile saved successfully.")
+            st.session_state.pop("matching_results", None)
+            st.session_state.pop("last_match_mentee", None)
+            st.session_state["next_workspace_page"] = "Find Mentor"
+            st.toast("Mentee profile saved. Find a matching mentor next.", icon="✅")
+            st.rerun()
         except Exception as exc:
             st.error("Could not save the mentee profile.")
             st.exception(exc)
@@ -1396,7 +2068,17 @@ def render_find_mentor():
         return
 
     options = {user_label(m): m["id"] for m in mentees}
-    selected_label = st.selectbox("Select mentee", list(options.keys()), key="find_mentee_select")
+    select_col, requests_col = st.columns([3, 1])
+    with select_col:
+        selected_label = st.selectbox("Select mentee", list(options.keys()), key="find_mentee_select")
+    with requests_col:
+        st.markdown('<div style="height:1.65rem"></div>', unsafe_allow_html=True)
+        st.button(
+            "My Requests",
+            key="find_my_requests",
+            use_container_width=True,
+            on_click=open_my_requests,
+        )
     mentee_id = options[selected_label]
     mentee = get_mentee(mentee_id)
 
@@ -1859,10 +2541,10 @@ def render_mentor_profile():
 
 
 # -------------------------------------------------------------------
-# Mentor Dashboard
+# Legacy Mentor Dashboard
 # -------------------------------------------------------------------
 
-def render_mentor_dashboard():
+def _legacy_render_mentor_dashboard():
     st.markdown('<div class="eyebrow">MENTOR WORKSPACE</div>', unsafe_allow_html=True)
     st.title("Mentor Dashboard")
     st.caption("Review mentorship requests and manage capacity safely.")
@@ -1885,27 +2567,60 @@ def render_mentor_dashboard():
         st.error("Unable to load the selected mentor.")
         return
 
+    dashboard_notice = st.session_state.pop("mentor_dashboard_notice", None)
+    if dashboard_notice:
+        st.success(dashboard_notice)
+
     current = int(mentor.get("current_mentees", 0))
     maximum = int(mentor.get("max_mentees", 0))
     remaining = max(0, maximum - current)
     available = current < maximum
 
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        metric_card("Current Mentees", current)
-    with c2:
-        metric_card("Maximum", maximum)
-    with c3:
-        metric_card("Remaining Slots", remaining)
-    with c4:
-        metric_card("Status", "AVAILABLE" if available else "FULL")
-
     requests = get_pending_requests_for_mentor(mentor_id)
+    show_pending_landing = st.session_state.pop("mentor_pending_landing", False)
 
-    st.markdown('<div class="section-title">Mentorship Requests</div>', unsafe_allow_html=True)
+    mentor_name = display_name(mentor)
+    initials = "".join(part[0] for part in mentor_name.split()[:2]).upper()
+    utilization = round((current / maximum) * 100) if maximum else 0
+    skills = safe_list(mentor.get("skills"))
+    expertise = str(mentor.get("expertise", "Not specified"))
+    experience = int(float(mentor.get("experience", mentor.get("experience_years", 0)) or 0))
+
+    st.markdown(
+        f'''
+        <div class="mentor-dashboard-card">
+            <div class="mentor-dashboard-profile">
+                <div class="mentor-identity">
+                    <div class="mentor-avatar">{escape(initials or "M")}</div>
+                    <div>
+                        <h2>{escape(mentor_name)} <span style="color:#42caff;font-size:.75rem">●</span></h2>
+                        <div class="mentor-subline"><span>◉</span> {escape(str(mentor.get("domain", "Mentor")))}<br><span>♙</span> {experience} years experience<br><span>✦</span> {escape(", ".join(skills[:4]) or "Mentorship")}</div>
+                    </div>
+                </div>
+                <div style="margin-top:1rem"><div class="mini-label">About</div><p class="explanation" style="margin-top:.35rem">{escape(str(mentor.get("bio", "Ready to support mentees with practical guidance.")))}</p></div>
+                <div style="margin-top:.7rem"><div class="mini-label">Skills &amp; Expertise</div><div style="margin-top:.25rem">{skills_html(skills)}{skills_html(expertise)}</div></div>
+            </div>
+            <div class="dashboard-status">
+                <div class="dashboard-ring">{utilization}%<small>CAPACITY USED</small></div>
+                <div class="dashboard-capacity"><strong>● {"AVAILABLE" if available else "FULL"}</strong><br>Capacity<br><b>{current} / {maximum} mentees</b><br>Remaining slots: {remaining}</div>
+            </div>
+        </div>
+        <div class="dashboard-details">
+            <div class="dashboard-detail-card"><h4>Mentor Details</h4><p>Experience: {experience} years<br>Domain: {escape(str(mentor.get("domain", "Not specified")))}<br>Email: {escape(str(mentor.get("email", "")))}</p></div>
+            <div class="dashboard-detail-card"><h4>Mentoring Skills</h4><div>{skills_html(skills)}</div></div>
+        </div>
+        ''',
+        unsafe_allow_html=True,
+    )
+
+    if show_pending_landing and requests:
+        st.markdown('<div class="section-title">Pending Requests</div>', unsafe_allow_html=True)
+        st.caption("Review the mentees waiting for your response.")
+    else:
+        st.markdown('<div class="section-title">Mentor Dashboard</div>', unsafe_allow_html=True)
 
     if not requests:
-        st.info("No mentorship requests for this mentor.")
+        st.info("No requests found.")
         return
 
     for request in requests:
@@ -1960,7 +2675,9 @@ def render_mentor_dashboard():
                         if isinstance(result, dict) and result.get("success") is False:
                             st.warning(result.get("message", "The request could not be accepted."))
                         else:
-                            st.success("Request accepted and mentor capacity updated.")
+                            st.session_state["mentor_dashboard_notice"] = "Request accepted and mentor capacity updated."
+                            st.session_state["next_workspace_page"] = "Mentor Dashboard"
+                        st.session_state["mentor_pending_landing"] = False
                         st.rerun()
                     except Exception as exc:
                         st.error("The request could not be accepted.")
@@ -1977,11 +2694,160 @@ def render_mentor_dashboard():
                         if isinstance(result, dict) and result.get("success") is False:
                             st.warning(result.get("message", "The request could not be rejected."))
                         else:
-                            st.success("Request rejected.")
+                            st.session_state["mentor_dashboard_notice"] = "Request rejected."
+                            st.session_state["next_workspace_page"] = "Mentor Dashboard"
+                        st.session_state["mentor_pending_landing"] = False
                         st.rerun()
                     except Exception as exc:
                         st.error("The request could not be rejected.")
                         st.exception(exc)
+
+
+# -------------------------------------------------------------------
+# Reference-style mentor dashboard
+# -------------------------------------------------------------------
+
+def render_mentor_dashboard():
+    st.markdown('<div class="eyebrow">MENTOR WORKSPACE</div>', unsafe_allow_html=True)
+    st.title("Mentor Dashboard")
+    st.caption("Review your profile, availability, matching details, and incoming requests.")
+
+    mentor_id = get_logged_in_mentor_id()
+    mentor = get_mentor(mentor_id) if mentor_id else None
+    if not mentor:
+        st.warning("No mentors are available.")
+        return
+
+    notice = st.session_state.pop("mentor_dashboard_notice", None)
+    if notice:
+        st.success(notice)
+
+    requests = get_pending_requests_for_mentor(mentor_id)
+    current = int(mentor.get("current_mentees", 0) or 0)
+    maximum = int(mentor.get("max_mentees", 0) or 0)
+    remaining = max(0, maximum - current)
+    available = current < maximum
+    mentor_name = display_name(mentor)
+    initials = "".join(part[0] for part in mentor_name.split()[:2]).upper()
+    skills = safe_list(mentor.get("skills"))
+    expertise = safe_list(mentor.get("expertise"))
+    experience = int(float(mentor.get("experience", mentor.get("experience_years", 0)) or 0))
+
+    selected_request = requests[0] if requests else None
+    match = None
+    if selected_request:
+        request_mentee = {
+            "required_skills": selected_request.get("required_skills", ""),
+            "learning_goals": selected_request.get("learning_goals", ""),
+            "skills": selected_request.get("current_skills", ""),
+        }
+        match = calculate_match(request_mentee, mentor)
+        required_percentage = match["required_match_percentage"]
+        goals_percentage = match["learning_goal_match_percentage"]
+        current_percentage = match["current_skill_match_percentage"]
+        display_score = match["match_percentage"]
+        score_label = f"Match with {selected_request.get('mentee_name', 'mentee')}"
+    else:
+        completeness = [
+            bool(skills),
+            bool(expertise),
+            min(experience / 10, 1),
+            min(len(str(mentor.get("bio", "")).strip()) / 120, 1),
+        ]
+        display_score = round(sum(completeness) / len(completeness) * 100, 1)
+        required_percentage = round(min(len(skills) / 8, 1) * 100, 1)
+        goals_percentage = round(min(len(expertise) / 5, 1) * 100, 1)
+        current_percentage = round(min(experience / 10, 1) * 100, 1)
+        score_label = "Profile completeness score"
+
+    def progress_row(label, percentage, color):
+        value = max(0, min(100, float(percentage)))
+        return (
+            f'<div class="progress-row"><div class="progress-label">'
+            f'<span>{escape(label)}</span><span>{value:.1f}%</span></div>'
+            f'<div class="progress-track"><div class="progress-fill {color}" '
+            f'style="width:{value:.1f}%"></div></div></div>'
+        )
+
+    st.markdown('<div class="dashboard-shell">', unsafe_allow_html=True)
+    left, middle, right = st.columns([1.12, 1, .92], gap="small")
+
+    with left:
+        st.markdown(
+            f'''
+            <div class="dashboard-column">
+                <div class="mentor-identity">
+                    <div class="mentor-avatar">{escape(initials or "M")}</div>
+                    <div><h2>{escape(mentor_name)} <span style="color:#42caff;font-size:.75rem">●</span></h2>
+                    <div class="mentor-subline"><span>◉</span> {escape(str(mentor.get("domain", "Mentor")))}<br>
+                    <span>♙</span> {experience} years experience<br>
+                    <span>✦</span> {escape(", ".join(skills[:4]) or "Mentorship")}</div></div>
+                </div>
+                <h4>About</h4><p class="explanation">{escape(str(mentor.get("bio", "No bio available.")))}</p>
+                <h4>Skills &amp; Expertise</h4><div>{skills_html(skills + expertise)}</div>
+            </div>
+            ''',
+            unsafe_allow_html=True,
+        )
+
+    with middle:
+        st.markdown(
+            f'''<div class="dashboard-column"><div class="dashboard-ring">{display_score:.1f}%<small>{"MATCH SCORE" if match else "PROFILE SCORE"}</small></div><div class="profile-score-label">{escape(score_label)}</div><h3 style="margin-top:1.1rem">Matching Details</h3>{progress_row("Required Skills Match", required_percentage, "progress-purple")}{progress_row("Learning Goals Match", goals_percentage, "progress-blue")}{progress_row("Current Skill Context", current_percentage, "progress-green")}</div>''',
+            unsafe_allow_html=True,
+        )
+
+    with right:
+        matching_skills = skills
+        required_skills_matched = match["matched_skills"] if match else skills
+        goal_alignment = match["matched_goals"] if match else expertise
+        st.markdown(
+            f'''<div class="dashboard-column"><h3><span style="color:{"#63efa4" if available else "#ff7777"}">●</span> {"AVAILABLE" if available else "FULL"}</h3><div class="dashboard-capacity">Capacity<br><b>{current} / {maximum} mentees</b><br>Remaining slots: {remaining}</div><h4>Matching Skills</h4><div>{skills_html(matching_skills)}</div><h4>Required Skills Matched</h4><div>{skills_html(required_skills_matched)}</div><h4>Goal Alignment</h4><div>{skills_html(goal_alignment)}</div></div>''',
+            unsafe_allow_html=True,
+        )
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    action_left, _ = st.columns(2)
+    with action_left:
+        if st.button("Edit Full Profile", key="mentor_edit_full_profile", use_container_width=True):
+            st.session_state["next_workspace_page"] = "Mentor Profile"
+            st.rerun()
+
+    st.markdown('<div class="section-title">Pending Requests</div>', unsafe_allow_html=True)
+    if not requests:
+        st.info("No requests found.")
+        return
+
+    for request in requests:
+        request_id = request["id"]
+        request_status = str(request.get("status", "PENDING")).upper()
+        request_mentee = {
+            "required_skills": request.get("required_skills", ""),
+            "learning_goals": request.get("learning_goals", ""),
+            "skills": request.get("current_skills", ""),
+        }
+        request_match = calculate_match(request_mentee, mentor)
+        st.markdown(
+            f'''<div class="card" style="margin-bottom:.5rem"><div style="display:flex;justify-content:space-between;gap:.75rem"><div><h3 style="margin:0">{escape(str(request.get("mentee_name", "Mentee")))}</h3><div style="color:#8e9bad;font-size:.65rem">{escape(str(request.get("mentee_email", "")))}</div></div><div>{request_status_html(request_status)}</div></div><div style="margin-top:.6rem">{skills_html(request.get("current_skills"))}</div><div style="margin-top:.45rem;color:#aeb8c8;font-size:.65rem">Domain: {escape(str(request.get("current_domain", "Not specified")))} · Level: {escape(str(request.get("skill_level", "Not specified")))} · Match: {request_match["match_percentage"]:.1f}%</div><div style="margin-top:.35rem;color:#6f7b8e;font-size:.6rem">Goals: {skills_html(request.get("learning_goals"))}<br>Required: {skills_html(request.get("required_skills"))}<br>Created: {escape(str(request.get("created_at", "")))}</div></div>''',
+            unsafe_allow_html=True,
+        )
+        accept_col, reject_col = st.columns(2)
+        with accept_col:
+            if st.button("Accept Request", key=f"accept_{request_id}", type="primary", use_container_width=True):
+                result = accept_request(request_id, mentor_id)
+                if isinstance(result, dict) and result.get("success") is False:
+                    st.warning(result.get("message", "The request could not be accepted."))
+                else:
+                    st.session_state["mentor_dashboard_notice"] = "Request accepted and mentor capacity updated."
+                    st.rerun()
+        with reject_col:
+            if st.button("Reject Request", key=f"reject_{request_id}", use_container_width=True):
+                result = reject_request(request_id, mentor_id)
+                if isinstance(result, dict) and result.get("success") is False:
+                    st.warning(result.get("message", "The request could not be rejected."))
+                else:
+                    st.session_state["mentor_dashboard_notice"] = "Request rejected."
+                    st.rerun()
 
 
 # -------------------------------------------------------------------
